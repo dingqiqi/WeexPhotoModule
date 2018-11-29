@@ -1,0 +1,60 @@
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+configurations {
+    deployerJars
+}
+
+repositories {
+    mavenCentral()
+}
+
+// 判断版本是Release or Snapshots
+def isReleaseBuild() {
+    return !VERSION.contains("SNAPSHOT");
+}
+
+// 判断上传到本地
+def isLocal() {
+    return "true".equals(IS_LOCAL);
+}
+
+// 获取仓库url
+def getRepositoryUrl() {
+    return isReleaseBuild() ? RELEASE_URL : SNAPSHOT_URL;
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+
+        if (isLocal()) {
+            repository(url: LOCAL_REPO_URL)
+            pom.groupId = GROUP
+            pom.artifactId = POM_ARTIFACT_ID
+            pom.version = VERSION
+        } else {
+            beforeDeployment {
+                MavenDeployment deployment -> signing.signPom(deployment)
+            }
+
+            pom.version = VERSION
+            pom.artifactId = POM_ARTIFACT_ID
+            pom.groupId = GROUP
+
+            def uploadUrl = project.hasProperty('url') ? url : getRepositoryUrl()
+            def uploadName = project.hasProperty('username') ? username : NAME
+            def uploadPsw = project.hasProperty('password') ? password : PASSWORD
+
+            repository(url: uploadUrl) {
+                authentication(userName: uploadName, password: uploadPsw) // maven授权信息
+            }
+        }
+    }
+}
+
+// 进行数字签名
+signing {
+    // 当 发布版本 & 存在"uploadArchives"任务时，才执行
+    required { isReleaseBuild() && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}

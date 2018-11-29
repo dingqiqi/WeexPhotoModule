@@ -1,0 +1,53 @@
+apply plugin: 'com.android.library'
+apply from: 'maven_push.gradle'
+
+buildscript {
+
+    repositories {
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.3.3'
+
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
+        jcenter()
+    }
+}
+
+android {
+    compileSdkVersion 28
+    buildToolsVersion '27.0.3'
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    provided 'com.taobao.android:weex_sdk:0.16.0'
+    compile "com.android.support:appcompat-v7:26.1.0"
+}
